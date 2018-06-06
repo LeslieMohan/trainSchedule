@@ -23,80 +23,95 @@ $("#submitTrainInfo").on("click", function(event) {
 
 	//grab user input values
 	var trainName = $("#trainName").val().trim();
-	var trainDestination = $("#trainDest").val().trim();
+	var trainDest = $("#trainDest").val().trim();
+	var trainTime = $("#trainTime").val().trim();
+	var trainFreq = $("#trainFreq").val().trim();
 
-	//convert user input to info
-	var trainTime = moment($("#trainTime").val().trim(), "hh:mm").format("X");
 
-	var trainFrequency = $("#trainFreq").val().trim();
+	var result="";
 	
-	//current time
-	var currentTime = moment();
-	console.log("CURRENT TIME: " +  moment(currentTime).format("hh:mm"));
-
-	 console.log(trainName);
-	 console.log(trainDestination);
-	 console.log(trainTime);
-	 console.log(trainFrequency);
-	 console.log(currentTime);
-
-
-
-	//get new train info
-	var newTrain = {
-
-		train: trainName,
-		trainLeaving: trainDestination,
-		trainArriving: trainTime,
-		everyXMin: trainFrequency
-	};
+	
+	//console.log(trainName);
+	 //console.log(trainDestination);
+	 //console.log(trainTime);
+	 //console.log(trainFrequency);
+	 //console.log(currentTime);
 
 
 	//push the newTrain info to firebase
-	database.ref().set(newTrain);
-	//*push* adds to info already in firebase. *set* overwrites preexisting info
+	
+	database.ref().push( {
+		trainName: trainName,
+		trainDest: trainDest,
+		trainTime: trainTime,
+		trainFreq: trainFreq
+	});
+	
 	
 	//clear table before adding new input
+
 	$("#trainName").val("");
-	$("#trainDest").val("");
-	$("#trainTime").val("");
+ 	$("#trainDest").val("");
+   	$("#trainTime").val("");
 	$("#trainFreq").val("");
+	
 
-  return false;
+});   //end onclick
 
-}); 
+ 
+
+ 
 
 //adding to database
-database.ref().on("child_added", function(childSnapshot, prevChildKey) {
+database.ref().on("child_added", function(childSnapshot) {
 
 		console.log(childSnapshot.val());
 		//store
-		var trainName = childSnapshot.val().train;
-		var trainDestination =childSnapshot.val().trainLeaving;
-		var trainTime = childSnapshot.val().trainArriving;
-		var trainFrequency = childSnapshot.val().everyXMin;
+		var Name = childSnapshot.val().trainName;
+		var Dest = childSnapshot.val().trainDest;
+		var Time = childSnapshot.val().trainTime;
+		var Freq = childSnapshot.val().trainFreq;
 
-// 		console.log(trainName);
-// 		console.log(trainDestination);
+ //		console.log(trainName);
+//		console.log(trainDest);
 // 		console.log(trainTime);
-// 		console.log(trainFrequency);
+//		console.log(trainFreq);
+
+	var Freq = parseInt(Freq);
+
+		//current time
+		var currentTime = moment().format('x');
+
+		var convertDate = moment(Time,'HH:mm').subtract(1,'years');
+
+		console.log("CONVERT TIME: " +  convertDate);
+
 
 		//first train time
-		var trainTime = moment.unix(trainTime).format("hh:mm");
+		var trainTime = moment(convertDate).format("HH:mm");
+		console.log("TRAIN TIME : " + trainTime);
+
+		var timeConvert = moment(trainTime,'HH:mm').subtract(1,'years');
+		
 		//calculate the difference between times
-		var difference =  moment().diff(moment(trainTime),"minutes");
+		var difference =  moment().diff(timeConvert,"minutes");
 
 		//time apart
-		var trainRemainder = difference % trainFrequency;
+		var trainRemainder = difference % Freq;
 
-		//minutes until arrival
-		var minUntil = trainFrequency - trainRemainder;
+		//minutes until the next train
+		var minAway = Freq - trainRemainder;
 
-		//the next arrival time
-		var nextArrival = moment().add(minUntil, "minutes").format('hh:mm');
+		//the next train time
+		var nextTrain = moment().add(minAway, "minutes");
 
 		//adding this info to table 
-		$("#tableContent > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDestination + "</td><td>" + trainFrequency + "</td><td>" + nextArrival + "</td><td>" + minUntil + "</td></tr>");
+		$("#tableContent").append(
+			"<tr><td #trainName>" + Name + 
+			"</td><td>" + Dest + 
+			"</td><td>" + Freq + 
+			"</td><td>" + moment(nextTrain).format('HH:mm') + "</td><td>" + minAway + 
+			"</td></tr>");
 
 });
 
