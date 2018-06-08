@@ -60,8 +60,6 @@ $("#submitTrainInfo").on("click", function(event) {
 
  
 
- 
-
 //adding to database
 database.ref().on("child_added", function(childSnapshot) {
 
