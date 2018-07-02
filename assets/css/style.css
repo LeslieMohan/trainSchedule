@@ -86,7 +86,7 @@ body {
 
 @font-face {
     font-family: "IFC_RAILROAD";
-    src: url("ifc_railroad.ttf") format('ttf');
+    src: url("IFC_RAILROAD.ttf") format('ttf');
 }
 
 .pageTitle {
